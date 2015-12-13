@@ -9,6 +9,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>Kanna.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods-VGNMonitor.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -22,17 +27,22 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>1E6EED819291060E4A06190058B70965</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
 		<key>432ECC54282C84882B482CCB4CF227FC</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>69E2206222D2D9230B70A101FBBD21A3</key>
+		<key>4ABD3E2BF0F5101E23A3F4A122045693</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AE028DEBF540CD8280ED51BFA18D5935</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>E288233C32279BD051FAA6B4749F60FE</key>
 		<dict>
 			<key>primary</key>
 			<true/>

@@ -7,15 +7,17 @@
 //
 
 import UIKit
+import CoreData
 import Alamofire
 import SwiftyJSON
 
 class StopViewController: UITableViewController, UISearchResultsUpdating {
-
+    
     var filteredStops = [Stop]()
+    var savedStops = [NSManagedObject]()
     var resultSearchController = UISearchController()
     var selectedStop = Stop(name: "", id: "")
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,17 +31,58 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
         
         self.tableView.reloadData()
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        
+        let fetchRequest = NSFetchRequest(entityName: "Stop")
+
+        do {
+            let results = try managedContext.executeFetchRequest(fetchRequest)
+            savedStops = results as! [NSManagedObject]
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+    }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         
-        self.selectedStop = filteredStops[self.tableView.indexPathForSelectedRow!.row]
+        if (self.resultSearchController.active){
+            self.selectedStop = filteredStops[self.tableView.indexPathForSelectedRow!.row]
+        }else{
+            let s = savedStops[self.tableView.indexPathForSelectedRow!.row]
+            self.selectedStop = Stop(name: s.valueForKey("name") as! String, id: s.valueForKey("id") as! String)
+        }
         
+        let stored = savedStops.contains({ (stop: NSManagedObject) -> Bool in
+            return stop.valueForKey("name") as! String == selectedStop.name
+        })
+        
+        if !stored {
+            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+            let managedContext = appDelegate.managedObjectContext
+            
+            let entity =  NSEntityDescription.entityForName("Stop", inManagedObjectContext:managedContext)
+            let stop = NSManagedObject(entity: entity!, insertIntoManagedObjectContext: managedContext)
+            
+            stop.setValue(selectedStop.name, forKey: "name")
+            stop.setValue(selectedStop.id, forKey: "id")
+            
+            do {
+                try managedContext.save()
+                savedStops.append(stop)
+            } catch let error as NSError  {
+                print("Could not save \(error), \(error.userInfo)")
+            }
+        }
         self.resultSearchController.active = false
     }
     
@@ -51,7 +94,7 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
         }
         else
         {
-            return 0
+            return self.savedStops.count
         }
     }
     
@@ -67,6 +110,7 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
         }
         else
         {
+            cell!.textLabel?.text = self.savedStops[indexPath.row].valueForKey("name") as? String
             return cell!
         }
     }
@@ -82,32 +126,32 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
             case .Success:
                 if let value = response.result.value {
                     let json = JSON(value)
-                  
+                    
                     let suggestions = json["suggestions"]
                     let ids = json["data"]
                     
                     
                     for (index,suggestion):(String, JSON) in suggestions {
-                    
+                        
                         let i = Int.init(index)
                         let id = ids[i!]["name"]
                         
-                        if(id != nil) {                            
+                        if(id != nil) {
                             let stop = Stop(name: suggestion.string!, id: id.string!)
                             self.filteredStops.append(stop)
                         }
                     }
                     
                     self.tableView.reloadData()
-                
+                    
                 }
             case .Failure(let error):
                 print("error \(error)")
             }
         }
-
+        
     }
     
-
+    
 }
 

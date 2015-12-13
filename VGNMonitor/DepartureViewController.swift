@@ -9,6 +9,7 @@
 import UIKit
 import Alamofire
 import SwiftyJSON
+import Kanna
 
 class DepartureViewController: UITableViewController {
     
@@ -45,6 +46,25 @@ class DepartureViewController: UITableViewController {
             
             return cell!
 
+    }
+    
+    func getDepartures(id : String){
+        
+        Alamofire.request(.GET, "http://www.vgn.de/echtzeit-abfahrten/?type_dm=any&nameInfo_dm=\(id)").validate().responseString { response in
+            switch response.result {
+            case .Success:
+                if let value = response.result.value {
+
+                    
+                    
+                    self.tableView.reloadData()
+                    
+                }
+            case .Failure(let error):
+                print("error \(error)")
+            }
+        }
+        
     }
     
 

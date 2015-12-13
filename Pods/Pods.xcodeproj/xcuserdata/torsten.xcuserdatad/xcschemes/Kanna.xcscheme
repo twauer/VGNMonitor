@@ -14,10 +14,10 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '2A797405556E0FB3511C0A41'
-               BlueprintName = 'Pods-VGNMonitor'
+               BlueprintIdentifier = '7A073ED606F568D1415B14C2'
+               BlueprintName = 'Kanna'
                ReferencedContainer = 'container:Pods.xcodeproj'
-               BuildableName = 'Pods_VGNMonitor.framework'>
+               BuildableName = 'Kanna.framework'>
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
