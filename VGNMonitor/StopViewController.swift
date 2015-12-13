@@ -14,6 +14,7 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
 
     var filteredStops = [Stop]()
     var resultSearchController = UISearchController()
+    var selectedStop = Stop(name: "", id: "")
 
     
     override func viewDidLoad() {
@@ -36,6 +37,9 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
     
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        
+        self.selectedStop = filteredStops[self.tableView.indexPathForSelectedRow!.row]
+        
         self.resultSearchController.active = false
     }
     

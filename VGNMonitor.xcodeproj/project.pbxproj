@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		CD829A0302D1D828428B33B7 /* Pods_VGNMonitor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC65C3CBDB735993B582225A /* Pods_VGNMonitor.framework */; };
 		E54F96861C1DDF8D00ADD0ED /* Stop.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54F96851C1DDF8D00ADD0ED /* Stop.swift */; };
+		E54F96881C1DEEA900ADD0ED /* DepartureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54F96871C1DEEA900ADD0ED /* DepartureViewController.swift */; };
+		E54F968A1C1DEF1900ADD0ED /* Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54F96891C1DEF1900ADD0ED /* Departure.swift */; };
 		E5D635F81C1DD0A6006074EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D635F71C1DD0A6006074EE /* AppDelegate.swift */; };
 		E5D635FA1C1DD0A6006074EE /* StopViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D635F91C1DD0A6006074EE /* StopViewController.swift */; };
 		E5D635FF1C1DD0A6006074EE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5D635FD1C1DD0A6006074EE /* Main.storyboard */; };
@@ -39,6 +41,8 @@
 		6D51E7FFB66741C07EDB46DF /* Pods-VGNMonitor.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VGNMonitor.debug.xcconfig"; path = "Pods/Target Support Files/Pods-VGNMonitor/Pods-VGNMonitor.debug.xcconfig"; sourceTree = "<group>"; };
 		8F57F99E53A2E044379EA5A3 /* Pods-VGNMonitor.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VGNMonitor.release.xcconfig"; path = "Pods/Target Support Files/Pods-VGNMonitor/Pods-VGNMonitor.release.xcconfig"; sourceTree = "<group>"; };
 		E54F96851C1DDF8D00ADD0ED /* Stop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stop.swift; sourceTree = "<group>"; };
+		E54F96871C1DEEA900ADD0ED /* DepartureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DepartureViewController.swift; sourceTree = "<group>"; };
+		E54F96891C1DEF1900ADD0ED /* Departure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
 		E5D635F41C1DD0A6006074EE /* VGNMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VGNMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5D635F71C1DD0A6006074EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E5D635F91C1DD0A6006074EE /* StopViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopViewController.swift; sourceTree = "<group>"; };
@@ -117,7 +121,9 @@
 			children = (
 				E5D635F71C1DD0A6006074EE /* AppDelegate.swift */,
 				E5D635F91C1DD0A6006074EE /* StopViewController.swift */,
+				E54F96871C1DEEA900ADD0ED /* DepartureViewController.swift */,
 				E54F96851C1DDF8D00ADD0ED /* Stop.swift */,
+				E54F96891C1DEF1900ADD0ED /* Departure.swift */,
 				E5D635FD1C1DD0A6006074EE /* Main.storyboard */,
 				E5D636021C1DD0A6006074EE /* LaunchScreen.storyboard */,
 				E5D636001C1DD0A6006074EE /* Assets.xcassets */,
@@ -337,6 +343,8 @@
 				E5D635F81C1DD0A6006074EE /* AppDelegate.swift in Sources */,
 				E5D635FA1C1DD0A6006074EE /* StopViewController.swift in Sources */,
 				E54F96861C1DDF8D00ADD0ED /* Stop.swift in Sources */,
+				E54F96881C1DEEA900ADD0ED /* DepartureViewController.swift in Sources */,
+				E54F968A1C1DEF1900ADD0ED /* Departure.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
