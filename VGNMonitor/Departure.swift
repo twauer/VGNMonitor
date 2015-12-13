@@ -10,4 +10,6 @@ import Foundation
 
 struct Departure {
     let time : String
+    let direction : String
+    let line : String
 }

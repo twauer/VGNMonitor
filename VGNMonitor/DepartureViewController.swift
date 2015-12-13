@@ -26,6 +26,10 @@ class DepartureViewController: UITableViewController {
         self.navigationItem.title = currentStop.name
     }
     
+    override func viewWillAppear(animated: Bool) {
+        getDepartures(currentStop.id)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -35,15 +39,20 @@ class DepartureViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-        return 1
+        return departures.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
     {
         let cell = tableView.dequeueReusableCellWithIdentifier("departure", forIndexPath: indexPath) as UITableViewCell?
 
-            cell!.textLabel?.text = self.currentStop.name
-            
+            let departure = departures[indexPath.row]
+        
+    
+        
+            cell!.textLabel?.text = "\(departure.line) \(departure.direction)"
+            cell!.detailTextLabel?.text = departure.time
+        
             return cell!
 
     }
@@ -53,8 +62,24 @@ class DepartureViewController: UITableViewController {
         Alamofire.request(.GET, "http://www.vgn.de/echtzeit-abfahrten/?type_dm=any&nameInfo_dm=\(id)").validate().responseString { response in
             switch response.result {
             case .Success:
-                if let value = response.result.value {
-
+                if let html = response.result.value {
+                    
+                    if let doc = Kanna.HTML(html: html, encoding: NSUTF8StringEncoding) {
+                        
+                        for departure in doc.css("tr[class~='Liste']") {
+                            
+                            let tds = departure.css("td")
+     
+                        
+                            let t = tds[0].text!
+                            let l = tds[2].text!.stringByReplacingOccurrencesOfString("\n", withString: "").stringByReplacingOccurrencesOfString(" ", withString:"")
+                            let d = tds[3].text!
+                            
+                            let dep = Departure(time: t, direction: d, line: l)
+                            
+                            self.departures.append(dep)
+                        }
+                    }
                     
                     
                     self.tableView.reloadData()
