@@ -24,6 +24,11 @@ class DepartureViewController: UITableViewController {
         self.currentStop = stopViewController.selectedStop
         
         self.navigationItem.title = currentStop.name
+        
+        let reloadButton = UIBarButtonItem(title: "Update", style: .Plain, target: self, action: "update:")
+        
+        self.navigationItem.rightBarButtonItem = reloadButton
+        
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -49,6 +54,8 @@ class DepartureViewController: UITableViewController {
             let departure = departures[indexPath.row]
         
     
+            
+        
         
             cell!.textLabel?.text = "\(departure.line) \(departure.direction)"
             cell!.detailTextLabel?.text = departure.time
@@ -83,7 +90,8 @@ class DepartureViewController: UITableViewController {
                     
                     
                     self.tableView.reloadData()
-                    
+                    self.navigationItem.rightBarButtonItem?.title = "Update"
+
                 }
             case .Failure(let error):
                 print("error \(error)")
@@ -92,6 +100,15 @@ class DepartureViewController: UITableViewController {
         
     }
     
+    
+    func update(sender: UIBarButtonItem){
+        
+        departures.removeAll()
+        self.navigationItem.rightBarButtonItem?.title = "Loading"
+        self.tableView.reloadData()
+        
+        getDepartures(currentStop.id)
+    }
 
     
 }
