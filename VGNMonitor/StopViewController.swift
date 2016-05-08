@@ -39,21 +39,13 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let managedContext = appDelegate.managedObjectContext
-        
-        let fetchRequest = NSFetchRequest(entityName: "Stop")
-
-        do {
-            let results = try managedContext.executeFetchRequest(fetchRequest)
-            savedStops = results as! [NSManagedObject]
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
+        self.fetchStops()
     }
     
+    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        
+        print("prepare for seque")
         
         if (self.resultSearchController.active){
             self.selectedStop = filteredStops[self.tableView.indexPathForSelectedRow!.row]
@@ -79,15 +71,17 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
             do {
                 try managedContext.save()
                 savedStops.append(stop)
+                
             } catch let error as NSError  {
                 print("Could not save \(error), \(error.userInfo)")
             }
         }
-        self.resultSearchController.active = false
+        
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
+        
         if (self.resultSearchController.active)
         {
             return self.filteredStops.count
@@ -100,6 +94,8 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
     {
+        print("cell for row at index path \(self.resultSearchController.active)")
+        
         let cell = tableView.dequeueReusableCellWithIdentifier("stop", forIndexPath: indexPath) as UITableViewCell?
         
         if (self.resultSearchController.active)
@@ -117,9 +113,12 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
     
     func updateSearchResultsForSearchController(searchController: UISearchController)
     {
+        print("update result search controller")
+        
         self.filteredStops.removeAll(keepCapacity: false)
         
-        let query = searchController.searchBar.text!
+        let query = searchController.searchBar.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
+        
         
         Alamofire.request(.GET, "http://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?query=\(query)").validate().responseJSON { response in
             switch response.result {
@@ -152,6 +151,51 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
         
     }
     
+    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        
+        print("comitEditingStyle")
+        
+        if(editingStyle == .Delete){
+            
+            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+            let managedContext = appDelegate.managedObjectContext
+            
+            managedContext.deleteObject(savedStops[indexPath.row])
+            
+            do{
+                try managedContext.save()
+
+            } catch let error as NSError  {
+                print("Could not save \(error), \(error.userInfo)")
+            }
+            
+            fetchStops()
+            self.tableView.reloadData()
+            
+        }
+        
+        
+    }
     
+    func fetchStops (){
+        
+        print("fetch stops")
+        
+        savedStops.removeAll()
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        
+        let fetchRequest = NSFetchRequest(entityName: "Stop")
+        
+        do {
+            let results = try managedContext.executeFetchRequest(fetchRequest)
+            savedStops = results as! [NSManagedObject]
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+    }
 }
+
+
 

@@ -25,14 +25,21 @@ class DepartureViewController: UITableViewController {
         
         self.navigationItem.title = currentStop.name
         
-        let reloadButton = UIBarButtonItem(title: "Update", style: .Plain, target: self, action: "update:")
+        let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.Gray)
         
-        self.navigationItem.rightBarButtonItem = reloadButton
+        let spinningButton = UIBarButtonItem(customView: activityIndicator)
+        activityIndicator.startAnimating()
+        self.navigationItem.rightBarButtonItem = spinningButton
         
     }
     
     override func viewWillAppear(animated: Bool) {
         getDepartures(currentStop.id)
+        
+        
+        if let searchController = self.presentedViewController as? UISearchController {
+            searchController.active = false
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -53,16 +60,13 @@ class DepartureViewController: UITableViewController {
 
             let departure = departures[indexPath.row]
         
-    
-            
-        
-        
             cell!.textLabel?.text = "\(departure.line) \(departure.direction)"
             cell!.detailTextLabel?.text = departure.time
         
             return cell!
 
     }
+    
     
     func getDepartures(id : String){
         
@@ -73,18 +77,29 @@ class DepartureViewController: UITableViewController {
                     
                     if let doc = Kanna.HTML(html: html, encoding: NSUTF8StringEncoding) {
                         
-                        for departure in doc.css("tr[class~='Liste']") {
+                        //doc.xpath("//tr[class='Liste']")
+                        
+                        for departure in doc.css("tr[class='Liste' or class='Liste alt']") {
                             
                             let tds = departure.css("td")
+                            
+                            
+                            //tds.forEach({ (t) in
+                            //    print(t.text)
+                            //})
+                            //print("\n ---------")
      
                         
-                            let t = tds[0].text!
-                            let l = tds[2].text!.stringByReplacingOccurrencesOfString("\n", withString: "").stringByReplacingOccurrencesOfString(" ", withString:"")
-                            let d = tds[3].text!
+                            let time = tds[0].text!
+                            let line = tds[2].text!.stringByReplacingOccurrencesOfString("\n", withString: "").stringByReplacingOccurrencesOfString(" ", withString:"")
+                            let direction = tds[3].text!
                             
-                            let dep = Departure(time: t, direction: d, line: l)
+                            let dep = Departure(time: time, direction: direction, line: line)
                             
                             self.departures.append(dep)
+                            
+                            let reloadButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Refresh, target: self, action: "update:")
+                            self.navigationItem.rightBarButtonItem = reloadButton
                         }
                     }
                     
@@ -103,8 +118,15 @@ class DepartureViewController: UITableViewController {
     
     func update(sender: UIBarButtonItem){
         
+        let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.Gray)
+        
+        let spinningButton = UIBarButtonItem(customView: activityIndicator)
+        activityIndicator.startAnimating()
+        
+        self.navigationItem.rightBarButtonItem = spinningButton
+        
         departures.removeAll()
-        self.navigationItem.rightBarButtonItem?.title = "Loading"
+        
         self.tableView.reloadData()
         
         getDepartures(currentStop.id)
