@@ -85,8 +85,20 @@
                             <outlet property="delegate" destination="voF-VI-eQS" id="Vkr-tB-Q5e"/>
                         </connections>
                     </tableView>
+                    <navigationItem key="navigationItem" id="MIJ-g9-Jxz"/>
+                    <refreshControl key="refreshControl" opaque="NO" multipleTouchEnabled="YES" contentMode="center" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" id="O0j-cA-z5r">
+                        <autoresizingMask key="autoresizingMask"/>
+                    </refreshControl>
+                    <connections>
+                        <outlet property="activityIndicator" destination="3By-FL-lYQ" id="Bcj-zV-LTW"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mur-8b-q8j" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" id="3By-FL-lYQ">
+                    <rect key="frame" x="0.0" y="0.0" width="20" height="20"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <rect key="contentStretch" x="1" y="1" width="1" height="1"/>
+                </activityIndicatorView>
             </objects>
             <point key="canvasLocation" x="1993" y="12"/>
         </scene>
@@ -98,8 +110,12 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
+                    <toolbar key="toolbar" opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="G1d-3l-RlS">
+                        <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </toolbar>
                     <connections>
-                        <segue destination="wUa-Lj-TYu" kind="relationship" relationship="rootViewController" id="xWa-Ob-xdB"/>
+                        <segue destination="wUa-Lj-TYu" kind="relationship" relationship="rootViewController" id="15p-iz-Bhx"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uj4-zY-VTP" userLabel="First Responder" sceneMemberID="firstResponder"/>

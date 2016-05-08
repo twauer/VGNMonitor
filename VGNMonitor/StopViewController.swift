@@ -29,6 +29,8 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
         
         self.tableView.tableHeaderView = self.resultSearchController.searchBar
         
+        //self.navigationController?.navigationBar.barTintColor = UIColor.redColor()
+        
         self.tableView.reloadData()
     }
     
@@ -115,14 +117,33 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
     {
         print("update result search controller")
         
+         // cancel clicked
+        if resultSearchController.active == false {
+            print("cancel search")
+            fetchStops()
+            self.tableView.reloadData()
+            return
+        }
+    
+        // empty lists
         self.filteredStops.removeAll(keepCapacity: false)
+        self.savedStops.removeAll(keepCapacity: false)
+        self.tableView.reloadData()
         
+        // build query string
         let query = searchController.searchBar.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
         
+        // if empty return
+        if(query == ""){
+            return
+        }
         
+        // do the query
         Alamofire.request(.GET, "http://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?query=\(query)").validate().responseJSON { response in
+            
             switch response.result {
             case .Success:
+                
                 if let value = response.result.value {
                     let json = JSON(value)
                     
@@ -145,11 +166,30 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
                     
                 }
             case .Failure(let error):
+                
                 print("error \(error)")
+                
+                
+                let alertCoontroller = UIAlertController(title: nil, message: nil, preferredStyle: .Alert)
+                alertCoontroller.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+                
+                switch error.code{
+                case -1009:
+                    alertCoontroller.title = "Keine Internetverbindung"
+                    alertCoontroller.message = "Bitte stelle eine Verbindung zum Internet her."
+                default:
+                    alertCoontroller.title = "Unbekannter Fehler"
+                    alertCoontroller.message = "Irgendetwas lief furchtbar schief..."
+                }
+                
+                self.resultSearchController.presentViewController(alertCoontroller, animated: true, completion: nil)
+ 
             }
         }
         
     }
+    
+    
     
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         
