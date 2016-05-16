@@ -10,28 +10,44 @@ import UIKit
 import CoreData
 import Alamofire
 import SwiftyJSON
+import Kanna
 
-class StopViewController: UITableViewController, UISearchResultsUpdating {
+class StopViewController: UIViewController, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource {
+    
+    @IBOutlet weak var searchBar: UISearchBar!
+    @IBOutlet weak var searchTableView: UITableView!
+    @IBOutlet weak var departureTableView: UITableView!
+    @IBOutlet var activityIndicator: UIActivityIndicatorView!
+    
+    let refreshControl = UIRefreshControl()
     
     var filteredStops = [Stop]()
-    var savedStops = [NSManagedObject]()
-    var resultSearchController = UISearchController()
-    var selectedStop = Stop(name: "", id: "")
-    
+    var departures = [Departure]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.resultSearchController = UISearchController(searchResultsController: nil)
-        self.resultSearchController.searchResultsUpdater = self
-        self.resultSearchController.dimsBackgroundDuringPresentation = false
-        self.resultSearchController.searchBar.sizeToFit()
+        //delegates
+        searchBar.delegate = self
+        searchTableView.delegate = self
+        departureTableView.delegate = self
         
-        self.tableView.tableHeaderView = self.resultSearchController.searchBar
+        //data source
+        searchTableView.dataSource = self
+        departureTableView.dataSource = self
         
-        //self.navigationController?.navigationBar.barTintColor = UIColor.redColor()
+        //visibility
+        searchTableView.hidden = true
+        activityIndicator.hidden = true
         
-        self.tableView.reloadData()
+        //appearence
+        searchBar.tintColor = UIColor.whiteColor()
+        
+        //refresh controll
+        refreshControl.backgroundColor = UIColor.lightGrayColor()
+        refreshControl.tintColor = UIColor.whiteColor()
+        refreshControl.addTarget(self, action: #selector(self.reloadDepartures), forControlEvents: UIControlEvents.ValueChanged)
+        departureTableView.addSubview(refreshControl)
     }
     
     override func didReceiveMemoryWarning() {
@@ -41,108 +57,101 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        self.fetchStops()
     }
     
+    ///////////////
+    // tablew view
+    //////////////
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        
-        print("prepare for seque")
-        
-        if (self.resultSearchController.active){
-            self.selectedStop = filteredStops[self.tableView.indexPathForSelectedRow!.row]
-        }else{
-            let s = savedStops[self.tableView.indexPathForSelectedRow!.row]
-            self.selectedStop = Stop(name: s.valueForKey("name") as! String, id: s.valueForKey("id") as! String)
-        }
-        
-        let stored = savedStops.contains({ (stop: NSManagedObject) -> Bool in
-            return stop.valueForKey("name") as! String == selectedStop.name
-        })
-        
-        if !stored {
-            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-            let managedContext = appDelegate.managedObjectContext
-            
-            let entity =  NSEntityDescription.entityForName("Stop", inManagedObjectContext:managedContext)
-            let stop = NSManagedObject(entity: entity!, insertIntoManagedObjectContext: managedContext)
-            
-            stop.setValue(selectedStop.name, forKey: "name")
-            stop.setValue(selectedStop.id, forKey: "id")
-            
-            do {
-                try managedContext.save()
-                savedStops.append(stop)
-                
-            } catch let error as NSError  {
-                print("Could not save \(error), \(error.userInfo)")
-            }
-        }
-        
-    }
-    
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
         
-        if (self.resultSearchController.active)
-        {
+        if(tableView == searchTableView){
+            print("search table view")
             return self.filteredStops.count
-        }
-        else
-        {
-            return self.savedStops.count
-        }
-    }
-    
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
-    {
-        print("cell for row at index path \(self.resultSearchController.active)")
-        
-        let cell = tableView.dequeueReusableCellWithIdentifier("stop", forIndexPath: indexPath) as UITableViewCell?
-        
-        if (self.resultSearchController.active)
-        {
-            cell!.textLabel?.text = self.filteredStops[indexPath.row].name
+        }else{
+            print("dep t v")
             
-            return cell!
+            if(departures.count == 0){
+                departureTableView.backgroundView = activityIndicator
+                departureTableView.separatorStyle = .None
+            }else{
+                departureTableView.separatorStyle = .SingleLine
+            }
+            return self.departures.count
         }
-        else
-        {
-            cell!.textLabel?.text = self.savedStops[indexPath.row].valueForKey("name") as? String
+    }
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
+    {
+        if(tableView == searchTableView){
+            let cell = tableView.dequeueReusableCellWithIdentifier("stop", forIndexPath: indexPath) as UITableViewCell?
+            cell!.textLabel?.text = self.filteredStops[indexPath.row].name
+            return cell!
+        } else{
+            let cell = tableView.dequeueReusableCellWithIdentifier("departure", forIndexPath: indexPath) as UITableViewCell?
+            let departure = departures[indexPath.row]
+            cell!.textLabel?.text = "\(departure.line) \(departure.direction)"
+            cell!.detailTextLabel?.text = departure.time
             return cell!
         }
     }
     
-    func updateSearchResultsForSearchController(searchController: UISearchController)
-    {
-        print("update result search controller")
-        
-         // cancel clicked
-        if resultSearchController.active == false {
-            print("cancel search")
-            fetchStops()
-            self.tableView.reloadData()
-            return
-        }
     
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        
+        if(tableView == searchTableView){
+            
+            departures.removeAll(keepCapacity: false)
+            
+            let filtredStop = filteredStops[indexPath.row]
+            
+            getDepartures(filtredStop.id)
+            
+            searchBar.text = filtredStop.name
+            searchBar.resignFirstResponder()
+            
+            searchTableView.hidden = true
+        
+            activityIndicator.startAnimating()
+        }
+    }
+    
+    //////////////
+    // search bar
+    /////////////
+    
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+    
+        print("text did changed")
+        
         // empty lists
-        self.filteredStops.removeAll(keepCapacity: false)
-        self.savedStops.removeAll(keepCapacity: false)
-        self.tableView.reloadData()
+        if(!refreshControl.refreshing){
+            filteredStops.removeAll(keepCapacity: false)
+            searchTableView.reloadData()
+        }
         
         // build query string
-        let query = searchController.searchBar.text!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
+        let query = searchText.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
         
         // if empty return
         if(query == ""){
+            self.searchTableView.hidden = true
+            departures.removeAll(keepCapacity: false)
+            departureTableView.reloadData()
             return
         }
         
         // do the query
         Alamofire.request(.GET, "http://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?query=\(query)").validate().responseJSON { response in
-            
+
             switch response.result {
             case .Success:
+                
+                if(self.refreshControl.refreshing){
+                    self.filteredStops.removeAll(keepCapacity: false)
+                    self.searchTableView.reloadData()
+                }
                 
                 if let value = response.result.value {
                     let json = JSON(value)
@@ -162,7 +171,14 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
                         }
                     }
                     
-                    self.tableView.reloadData()
+                    self.searchTableView.reloadData()
+                    
+                    // if query tooks longer and user deleted search text
+                    if(self.searchBar.text == ""){
+                        self.searchTableView.hidden = true
+                    }else{
+                        self.searchTableView.hidden = false
+                    }
                     
                 }
             case .Failure(let error):
@@ -181,60 +197,88 @@ class StopViewController: UITableViewController, UISearchResultsUpdating {
                     alertCoontroller.title = "Unbekannter Fehler"
                     alertCoontroller.message = "Irgendetwas lief furchtbar schief..."
                 }
-                
-                self.resultSearchController.presentViewController(alertCoontroller, animated: true, completion: nil)
- 
+                 
             }
         }
         
     }
     
-    
-    
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        
-        print("comitEditingStyle")
-        
-        if(editingStyle == .Delete){
-            
-            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-            let managedContext = appDelegate.managedObjectContext
-            
-            managedContext.deleteObject(savedStops[indexPath.row])
-            
-            do{
-                try managedContext.save()
+    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
+        searchTableView.hidden = false
+    }
 
-            } catch let error as NSError  {
-                print("Could not save \(error), \(error.userInfo)")
+    
+    func getDepartures(id: String){
+        
+        print("get departueres")
+        
+        self.departures.removeAll()
+        self.departureTableView.reloadData()
+        
+        Alamofire.request(.GET, "http://www.vgn.de/echtzeit-abfahrten/?type_dm=any&nameInfo_dm=\(id)").validate().responseString { response in
+            switch response.result {
+            case .Success:
+                if let html = response.result.value {
+                    
+                    if let doc = Kanna.HTML(html: html, encoding: NSUTF8StringEncoding) {
+                        
+                        self.activityIndicator.stopAnimating()
+                        
+                        for departure in doc.xpath("//tr[@class='Liste'] | //tr[@class='Liste alt']") {
+                            
+                            let tds = departure.css("td")
+                            
+                            //tds.forEach({ (t) in
+                            //    print(t.text)
+                            //})
+                            //print("\n ---------")
+                            
+                            let time = tds[0].text!
+                            let line = tds[2].text!.stringByReplacingOccurrencesOfString("\n", withString: "").stringByReplacingOccurrencesOfString(" ", withString:"")
+                            let direction = tds[3].text!
+                            
+                            let dep = Departure(time: time, direction: direction, line: line)
+                            
+                            self.departures.append(dep)
+                        }
+                    }
+                    self.departureTableView.reloadData()
+                    self.refreshControl.endRefreshing()
+                }
+            case .Failure(let error):
+                print("error \(error)")
+                self.refreshControl.endRefreshing()
+                
+                let alertCoontroller = UIAlertController(title: nil, message: nil, preferredStyle: .Alert)
+                alertCoontroller.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: {(alert: UIAlertAction!) in
+                    if(self.departures.isEmpty){
+                        self.getDepartures(id)
+                    }
+                }))
+                
+                switch error.code{
+                case -1009:
+                    alertCoontroller.title = "Keine Internetverbindung"
+                    alertCoontroller.message = "Bitte stelle eine Verbindung zum Internet her."
+                default:
+                    alertCoontroller.title = "Unbekannter Fehler"
+                    alertCoontroller.message = "Irgendetwas lief furchtbar schief..."
+                }
+                
+                self.presentViewController(alertCoontroller, animated: true, completion: nil)
+                self.activityIndicator.stopAnimating()
+                
             }
             
-            fetchStops()
-            self.tableView.reloadData()
-            
         }
-        
         
     }
     
-    func fetchStops (){
-        
-        print("fetch stops")
-        
-        savedStops.removeAll()
-        
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let managedContext = appDelegate.managedObjectContext
-        
-        let fetchRequest = NSFetchRequest(entityName: "Stop")
-        
-        do {
-            let results = try managedContext.executeFetchRequest(fetchRequest)
-            savedStops = results as! [NSManagedObject]
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
+    func reloadDepartures(){
+        getDepartures(filteredStops[(searchTableView.indexPathForSelectedRow?.row)!].id)
     }
+
+    
 }
 
 
